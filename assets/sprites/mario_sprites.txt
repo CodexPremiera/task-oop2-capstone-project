@@ -1,0 +1,47 @@
+mario_sprites.png
+size: 382, 56
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+big_mario
+  rotate: false
+  xy: 0, 0
+  size: 336, 32
+  orig: 336, 32
+  offset: 0, 0
+  index: -1
+fireball
+  rotate: false
+  xy: 336, 0
+  size: 32, 8
+  orig: 32, 8
+  offset: 0, 0
+  index: -1
+goomba
+  rotate: false
+  xy: 0, 32
+  size: 48, 16
+  orig: 48, 16
+  offset: 0, 0
+  index: -1
+little_mario
+  rotate: false
+  xy: 48, 32
+  size: 222, 16
+  orig: 224, 16
+  offset: 1, 0
+  index: -1
+mushroom
+  rotate: false
+  xy: 270, 32
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+turtle
+  rotate: false
+  xy: 286, 32
+  size: 96, 24
+  orig: 96, 24
+  offset: 0, 0
+  index: -1
