@@ -1,0 +1,12 @@
+black_chicken.png
+size: 128, 128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+black_chicken
+  rotate: false
+  xy: 1, 1
+  size: 126, 126
+  orig: 128, 128
+  offset: 1, 1
+  index: -1
