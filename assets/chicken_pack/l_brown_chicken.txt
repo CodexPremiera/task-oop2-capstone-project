@@ -1,0 +1,40 @@
+l_brown_chicken.png
+size: 760, 21
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+chicken_attack
+  rotate: false
+  xy: 0, 0
+  size: 340, 21
+  orig: 340, 21
+  offset: 0, 0
+  index: -1
+chicken_die
+  rotate: false
+  xy: 340, 0
+  size: 80, 21
+  orig: 80, 21
+  offset: 0, 0
+  index: -1
+chicken_fly
+  rotate: false
+  xy: 420, 0
+  size: 160, 21
+  orig: 160, 21
+  offset: 0, 0
+  index: -1
+chicken_idle
+  rotate: false
+  xy: 580, 0
+  size: 100, 21
+  orig: 100, 21
+  offset: 0, 0
+  index: -1
+chicken_walk
+  rotate: false
+  xy: 680, 0
+  size: 80, 21
+  orig: 80, 21
+  offset: 0, 0
+  index: -1

@@ -21,10 +21,10 @@ import com.capstone.game.Tools.B2WorldCreator;
 public class PlayScreen implements Screen {
     /* GAME CONSTANTS */
     private static final String MAP_FILE = "arena1_world.tmx";
-    private static final float WORLD_GRAVITY = -12f;
-    private static final float JUMP_IMPULSE = 5f;
-    private static final float MOVE_IMPULSE = 0.42f;
-    private static final float MAX_SPEED = 3;
+    private static final float WORLD_GRAVITY = -20f;
+    private static final float JUMP_IMPULSE = 8f;
+    private static final float MOVE_IMPULSE = 0.4f;
+    private static final float MAX_SPEED = 2.8f;
     private static final float TIME_STEP = 1/60f;
     private static final int VELOCITY_ITERATIONS = 6;
     private static final int POSITION_ITERATIONS = 2;
@@ -81,15 +81,14 @@ public class PlayScreen implements Screen {
         // add bodies and fixtures to the world
         new B2WorldCreator(world, map);
 
-        // make chickens
-        TextureAtlas chicken1Atlas = new TextureAtlas("chicken_sprites/black_chicken.txt");
-        TextureAtlas.AtlasRegion chicken1Region = chicken1Atlas.findRegion("black_chicken");
+        TextureAtlas chicken1Atlas = new TextureAtlas("chicken_pack/l_brown_chicken.txt");
+        TextureAtlas.AtlasRegion chicken1Region = chicken1Atlas.findRegion("chicken_attack");
         float chicken1X = worldWidth / 4f;
         float chicken1Y = 64 / CockfightGame.PPM;
         chicken1 = new Chicken(world, this, chicken1Region, chicken1X, chicken1Y, true);
 
-        TextureAtlas chicken2Atlas = new TextureAtlas("chicken_sprites/light_brown_chicken.txt");
-        TextureAtlas.AtlasRegion chicken2Region = chicken2Atlas.findRegion("light_brown_chicken");
+        TextureAtlas chicken2Atlas = new TextureAtlas("chicken_pack/d_brown_chicken.txt");
+        TextureAtlas.AtlasRegion chicken2Region = chicken2Atlas.findRegion("chicken_attack");
         float chicken2X = worldWidth * 3 / 4f;
         float chicken2Y = 64 / CockfightGame.PPM;
         chicken2 = new Chicken(world, this, chicken2Region, chicken2X, chicken2Y, false);
@@ -150,14 +149,16 @@ public class PlayScreen implements Screen {
 
     }
 
-    public void handleInput(float dt) {
+    public void handleChicken1Input(float dt) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.W))
             jumpChicken(chicken1);
         if (Gdx.input.isKeyPressed(Input.Keys.A))
             moveLeft(chicken1);
         if (Gdx.input.isKeyPressed(Input.Keys.D))
             moveRight(chicken1);
+    }
 
+    public void handleChicken2Input(float dt) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP))
             jumpChicken(chicken2);
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
@@ -172,19 +173,32 @@ public class PlayScreen implements Screen {
     }
 
     private void moveLeft(Chicken chicken) {
-        if (chicken.body.getLinearVelocity().x >= -MAX_SPEED)
+        if (chicken.body.getLinearVelocity().x >= -MAX_SPEED && !(chicken.getState() == Chicken.State.JUMPING))
             chicken.body.applyLinearImpulse(new Vector2(-MOVE_IMPULSE, 0), chicken.body.getWorldCenter(), true);
     }
 
     private void moveRight(Chicken chicken) {
-        if (chicken.body.getLinearVelocity().x <= MAX_SPEED)
+        if (chicken.body.getLinearVelocity().x <= MAX_SPEED && !(chicken.getState() == Chicken.State.JUMPING))
             chicken.body.applyLinearImpulse(new Vector2(MOVE_IMPULSE, 0), chicken.body.getWorldCenter(), true);
     }
 
+    private float getDistance() {
+        return (float) Math.sqrt(Math.pow(chicken1.body.getPosition().x - chicken2.body.getPosition().x, 2) +
+                Math.pow(chicken1.body.getPosition().y - chicken2.body.getPosition().y, 2));
+    }
 
 
     public void update(float dt) {
-        handleInput(dt);
+        handleChicken1Input(dt);
+        handleChicken2Input(dt);
+
+        if (getDistance() < 0.8f) {
+            chicken1.setAttacking(true);
+            chicken2.setAttacking(true);
+        } else {
+            chicken1.setAttacking(false);
+            chicken2.setAttacking(false);
+        }
 
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         chicken1.update(dt);
@@ -195,13 +209,10 @@ public class PlayScreen implements Screen {
         float mapWidth = map.getProperties().get("width", Integer.class) / CockfightGame.PPM + 2.15f * cameraHalfWidth;
         float chickensPosition = (chicken1.body.getPosition().x + chicken2.body.getPosition().x )/ 2;
 
-        if ( chickensPosition <= cameraHalfWidth ) {
+        if ( chickensPosition <= cameraHalfWidth )
             gameCam.position.x = cameraHalfWidth;
-        } else if ( chickensPosition >= mapWidth ) {
-            gameCam.position.x = mapWidth;
-        } else {
-            gameCam.position.x = chickensPosition;
-        }
+        else
+            gameCam.position.x = Math.min(chickensPosition, mapWidth);
 
         // check chicken facing direction
         if (chicken1.body.getPosition().x < chicken2.body.getPosition().x) {
