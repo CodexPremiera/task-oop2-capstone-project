@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="758" tileheight="271" infinite="0" nextlayerid="3" nextobjectid="8">
+ <tileset firstgid="1" source="arena/arena1-all_frames.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="1" height="1">
+  <data encoding="csv">
+1
+</data>
+ </layer>
+ <objectgroup id="2" name="Object Layer 1">
+  <object id="2" x="-0.666667" y="257.998" width="759.333" height="12.6684" visible="0"/>
+  <object id="3" x="-0.666667" y="-1.33333" width="2.66667" height="273.333" visible="0"/>
+  <object id="4" x="755.333" y="0.666667" width="3.33333" height="268.667" visible="0"/>
+  <object id="5" x="0.666667" y="-1.33333" visible="0"/>
+  <object id="7" x="1.33333" y="-1.33333" width="756.667" height="4" visible="0"/>
+ </objectgroup>
+</map>

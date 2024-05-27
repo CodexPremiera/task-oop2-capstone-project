@@ -31,7 +31,7 @@ public class Hud implements Disposable {
         timeCount = 0;
         score = 0;
 
-        viewport = new FitViewport(CockfightGame.V_WIDTH, CockfightGame.V_HEIGHT, new OrthographicCamera());
+        viewport = new FitViewport(CockfightGame.V_WIDTH, CockfightGame.V_HEIGHT , new OrthographicCamera());
         stage = new Stage(viewport, spriteBatch);
 
         Table table = new Table();

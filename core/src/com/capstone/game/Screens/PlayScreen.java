@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -18,16 +17,15 @@ import com.capstone.game.Scenes.Hud;
 import com.capstone.game.Sprites.Chicken;
 import com.capstone.game.Tools.B2WorldCreator;
 
+import java.util.Random;
+
 public class PlayScreen implements Screen {
     /* GAME CONSTANTS */
-    private static final String MAP_FILE = "arena1_world.tmx";
-    private static final float WORLD_GRAVITY = -20f;
-    private static final float JUMP_IMPULSE = 8f;
-    private static final float MOVE_IMPULSE = 0.4f;
-    private static final float MAX_SPEED = 2.8f;
+    private static final String MAP_FILE = "cockpit/cockpit-new.tmx";
     private static final float TIME_STEP = 1/60f;
-    private static final int VELOCITY_ITERATIONS = 6;
-    private static final int POSITION_ITERATIONS = 2;
+    private static final int VELOCITY_ITERATIONS = 12;
+    private static final int POSITION_ITERATIONS = 4;
+    private static long time = System.currentTimeMillis();
 
 
     /* CAMERA ATTRIBUTES */
@@ -51,48 +49,36 @@ public class PlayScreen implements Screen {
     private final CockfightGame game;
     private Chicken chicken1;
     private Chicken chicken2;
+    private final Random random = new Random();
 
 
     /* CONSTRUCTOR */
-    public PlayScreen(CockfightGame game) {
+    public PlayScreen(CockfightGame game, World world, Chicken chicken1, Chicken chicken2) {
         this.game = game;
 
         // create the camera used to follow mario through the game world
         this.gameCam = new OrthographicCamera();
 
         // create a FitViewport to maintain virtual aspect ratio despite screen size
-        float worldWidth = CockfightGame.V_WIDTH / CockfightGame.PPM / 2;
-        float worldHeight = CockfightGame.V_HEIGHT / CockfightGame.PPM / 2;
-        this.gamePort = new FitViewport(worldWidth, worldHeight, gameCam);
 
-        // create the hud for the game
+
+        this.gamePort = new FitViewport(CockfightGame.worldWidth, CockfightGame.worldHeight, gameCam);
+
+        // create the hud and load the map
         this.hud = new Hud(game.spriteBatch);
-
-        // load the map and set up the renderers
         loadMap();
 
         // set the camera to the center of the viewport
         this.gameCam.position.set(gamePort.getWorldWidth() / 2 , gamePort.getWorldHeight() / 2, 0);
 
         // create the box2D world
-        this.world = new World(new Vector2(0, WORLD_GRAVITY), true);
+        this.world = world;
         this.box2DRenderer = new Box2DDebugRenderer();
-
-        // add bodies and fixtures to the world
         new B2WorldCreator(world, map);
 
-        TextureAtlas chicken1Atlas = new TextureAtlas("chicken_pack/l_brown_chicken.txt");
-        TextureAtlas.AtlasRegion chicken1Region = chicken1Atlas.findRegion("chicken_attack");
-        float chicken1X = worldWidth / 4f;
-        float chicken1Y = 64 / CockfightGame.PPM;
-        chicken1 = new Chicken(world, this, chicken1Region, chicken1X, chicken1Y, true);
-
-        TextureAtlas chicken2Atlas = new TextureAtlas("chicken_pack/d_brown_chicken.txt");
-        TextureAtlas.AtlasRegion chicken2Region = chicken2Atlas.findRegion("chicken_attack");
-        float chicken2X = worldWidth * 3 / 4f;
-        float chicken2Y = 64 / CockfightGame.PPM;
-        chicken2 = new Chicken(world, this, chicken2Region, chicken2X, chicken2Y, false);
-        chicken2.setIsFaceRight(false);
+        // set chickens
+        this.chicken1 = chicken1;
+        this.chicken2 = chicken2;
 
 
         // set the contact listener
@@ -103,13 +89,24 @@ public class PlayScreen implements Screen {
                 Body bodyB = contact.getFixtureB().getBody();
 
                 if ((bodyA.getUserData() instanceof Chicken && bodyB.getUserData() instanceof Chicken)) {
+                    if (random.nextBoolean()) {
+                        chicken1.attack(chicken2);
+                        chicken2.attack(chicken1);
+                    }
+                    else {
+                        chicken2.attack(chicken1);
+                        chicken1.attack(chicken2);
+                    }
+
                     Chicken chickenA = (Chicken) bodyA.getUserData();
                     Chicken chickenB = (Chicken) bodyB.getUserData();
 
                     Vector2 velocityA = chickenA.body.getLinearVelocity();
                     Vector2 velocityB = chickenB.body.getLinearVelocity();
 
-                    float bounceValue = 0.8f;
+
+
+                    float bounceValue = 0.2f;
                     Vector2 bounceImpulseA = new Vector2(velocityB.x - velocityA.x, velocityB.y - velocityA.y).scl(bounceValue);
                     Vector2 bounceImpulseB = new Vector2(velocityA.x - velocityB.x, velocityA.y - velocityB.y).scl(bounceValue);
 
@@ -145,74 +142,75 @@ public class PlayScreen implements Screen {
 
 
     @Override
-    public void show() {
+    public void show() {}
 
-    }
+    public void handleChicken1Input() {
+        if (!chicken1.isAlive())
+            return;
 
-    public void handleChicken1Input(float dt) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.W))
-            jumpChicken(chicken1);
+            chicken1.jump();
         if (Gdx.input.isKeyPressed(Input.Keys.A))
-            moveLeft(chicken1);
+            chicken1.moveLeft();
         if (Gdx.input.isKeyPressed(Input.Keys.D))
-            moveRight(chicken1);
+            chicken1.moveRight();
     }
 
-    public void handleChicken2Input(float dt) {
+    public void handleChicken2Input() {
+        if (!chicken2.isAlive())
+            return;
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP))
-            jumpChicken(chicken2);
+            chicken2.jump();
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
-            moveLeft(chicken2);
+            chicken2.moveLeft();
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-            moveRight(chicken2);
+            chicken2.moveRight();
     }
 
-    private void jumpChicken(Chicken chicken) {
-        if (!(chicken.getState() == Chicken.State.JUMPING))
-            chicken.body.applyLinearImpulse(new Vector2(0, JUMP_IMPULSE), chicken.body.getWorldCenter(), true);
-    }
-
-    private void moveLeft(Chicken chicken) {
-        if (chicken.body.getLinearVelocity().x >= -MAX_SPEED && !(chicken.getState() == Chicken.State.JUMPING))
-            chicken.body.applyLinearImpulse(new Vector2(-MOVE_IMPULSE, 0), chicken.body.getWorldCenter(), true);
-    }
-
-    private void moveRight(Chicken chicken) {
-        if (chicken.body.getLinearVelocity().x <= MAX_SPEED && !(chicken.getState() == Chicken.State.JUMPING))
-            chicken.body.applyLinearImpulse(new Vector2(MOVE_IMPULSE, 0), chicken.body.getWorldCenter(), true);
-    }
 
     private float getDistance() {
         return (float) Math.sqrt(Math.pow(chicken1.body.getPosition().x - chicken2.body.getPosition().x, 2) +
                 Math.pow(chicken1.body.getPosition().y - chicken2.body.getPosition().y, 2));
     }
 
+    public void fight() {
+
+    }
+
 
     public void update(float dt) {
-        handleChicken1Input(dt);
-        handleChicken2Input(dt);
+        // Call the fight method to automate chicken movement
 
-        if (getDistance() < 0.8f) {
-            chicken1.setAttacking(true);
-            chicken2.setAttacking(true);
+        if (random.nextBoolean()) {
+            chicken2.moveBackAndForthLoop(chicken1);
+            chicken1.moveBackAndForthLoop(chicken2);
+        } else {
+            chicken1.moveBackAndForthLoop(chicken2);
+            chicken2.moveBackAndForthLoop(chicken1);
+        }
+
+        handleChicken2Input();
+        handleChicken1Input();
+
+
+        if (getDistance() < 1.6f && chicken1.isAlive() && chicken2.isAlive()) {
+            if (random.nextBoolean()) {
+                chicken2.jump();
+                chicken1.jump();
+            } else {
+                chicken1.jump();
+                chicken2.jump();
+            }
+
+            if (getDistance() < 1.0f) {
+                chicken1.setAttacking(true);
+                chicken2.setAttacking(true);
+            }
         } else {
             chicken1.setAttacking(false);
             chicken2.setAttacking(false);
         }
-
-        world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-        chicken1.update(dt);
-        chicken2.update(dt);
-
-        // update game cam position
-        float cameraHalfWidth = gameCam.viewportWidth / 2;
-        float mapWidth = map.getProperties().get("width", Integer.class) / CockfightGame.PPM + 2.15f * cameraHalfWidth;
-        float chickensPosition = (chicken1.body.getPosition().x + chicken2.body.getPosition().x )/ 2;
-
-        if ( chickensPosition <= cameraHalfWidth )
-            gameCam.position.x = cameraHalfWidth;
-        else
-            gameCam.position.x = Math.min(chickensPosition, mapWidth);
 
         // check chicken facing direction
         if (chicken1.body.getPosition().x < chicken2.body.getPosition().x) {
@@ -222,6 +220,20 @@ public class PlayScreen implements Screen {
             chicken1.setIsFaceRight(false);
             chicken2.setIsFaceRight(true);
         }
+
+        world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+        chicken1.update(dt);
+        chicken2.update(dt);
+
+        // update game cam position
+        float cameraHalfWidth = gameCam.viewportWidth / 2;
+        float mapWidth = map.getProperties().get("width", Integer.class) / CockfightGame.PPM + 1.90f * cameraHalfWidth;
+        float chickensPosition = (chicken1.body.getPosition().x + chicken2.body.getPosition().x )/ 2;
+
+        if ( chickensPosition <= cameraHalfWidth )
+            gameCam.position.x = cameraHalfWidth;
+        else
+            gameCam.position.x = Math.min(chickensPosition, mapWidth);
 
         // update game cam to correct coordinates after changes
         gameCam.update();

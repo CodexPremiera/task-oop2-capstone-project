@@ -5,8 +5,6 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.physics.box2d.*;
 import com.capstone.game.CockfightGame;
-import com.capstone.game.Sprites.Brick;
-import com.capstone.game.Sprites.Coin;
 
 public class B2WorldCreator {
     /* LAYER INDICES FROM WORLD.TMX */
